@@ -1,7 +1,6 @@
 namespace GeoCheckInBackend;
 using GeoCheckInBackend.Data;
 using Microsoft.EntityFrameworkCore;
-using Npgsql.EntityFrameworkCore.PostgreSQL;
 
 public class Startup
 {
@@ -13,6 +12,8 @@ public class Startup
     {
         // This enables MVC controller support
         services.AddControllers();
+        services.AddEndpointsApiExplorer();
+        services.AddSwaggerGen();
 
         // Add other services like DbContext, Authentication, etc. here later
         global::System.Object value = services.AddDbContext<CheckInContext>(options =>
@@ -21,12 +22,15 @@ public class Startup
 
     public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
     {
-        if (env.IsDevelopment())
+         if (env.IsDevelopment())
         {
             app.UseDeveloperExceptionPage();
+            app.UseSwagger();
+            app.UseSwaggerUI(c =>
+            {
+                c.SwaggerEndpoint("/swagger/v1/swagger.json", "GeoCheckIn API V1");
+            });
         }
-
-        app.UseHttpsRedirection();
 
         app.UseRouting();
 

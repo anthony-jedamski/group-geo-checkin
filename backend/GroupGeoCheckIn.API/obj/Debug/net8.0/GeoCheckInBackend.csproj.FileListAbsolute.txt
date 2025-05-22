@@ -1,8 +1,0 @@
-/home/anthony/Projects/group-geo-checkin/backend/GroupGeoCheckIn.API/obj/Debug/net8.0/GeoCheckInBackend.csproj.AssemblyReference.cache
-/home/anthony/Projects/group-geo-checkin/backend/GroupGeoCheckIn.API/obj/Debug/net8.0/GeoCheckInBackend.GeneratedMSBuildEditorConfig.editorconfig
-/home/anthony/Projects/group-geo-checkin/backend/GroupGeoCheckIn.API/obj/Debug/net8.0/GeoCheckInBackend.AssemblyInfoInputs.cache
-/home/anthony/Projects/group-geo-checkin/backend/GroupGeoCheckIn.API/obj/Debug/net8.0/GeoCheckInBackend.AssemblyInfo.cs
-/home/anthony/Projects/group-geo-checkin/backend/GroupGeoCheckIn.API/obj/Debug/net8.0/GeoCheckInBackend.csproj.CoreCompileInputs.cache
-/home/anthony/Projects/group-geo-checkin/backend/GroupGeoCheckIn.API/obj/Debug/net8.0/GeoCheckInBackend.MvcApplicationPartsAssemblyInfo.cs
-/home/anthony/Projects/group-geo-checkin/backend/GroupGeoCheckIn.API/obj/Debug/net8.0/GeoCheckInBackend.MvcApplicationPartsAssemblyInfo.cache
-/home/anthony/Projects/group-geo-checkin/backend/GroupGeoCheckIn.API/obj/Debug/net8.0/GeoCheckInBackend.sourcelink.json
