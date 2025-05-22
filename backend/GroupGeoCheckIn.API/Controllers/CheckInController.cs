@@ -2,31 +2,60 @@ namespace GeoCheckInBackEnd.Controllers;
 
 using GeoCheckInBackEnd.Models;
 using System.Collections.Concurrent;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using System;
+using System.Linq;
+using System.Threading.Tasks;
+using GeoCheckIn.Data;
+using GeoCheckIn.Models;
 
 [ApiController]
 [Route("[controller]")]
 public class CheckInController : ControllerBase
 {
     private static readonly ConcurrentDictionary<string, UserLocation> _groupLocations = new();
-    [HttpPost("register")]
-    public IActionResult Register([FromBody] UserLocation user)
+    private readonly CheckInContext _context;
+    public CheckInController(CheckInContext context)
     {
-        _groupLocations.TryAdd(user.GroupName, new List<UserLocation>());
-        return Ok(new { Message = "User registered successfully." });
+        _context = context;
     }
 
-    [HttpPost("checkin")]
-    public IActionResult CheckIn([FromBody] UserLocation user)
+    // POST: api/GroupCheckIn/register
+    [HttpPost("register")]
+    public async Task<IActionResult> RegisterUser([FromBody] User user)
     {
-        if (userLocation == null || string.IsNullOrEmpty(user.UserId))
-        {
-            return BadRequest("Invalid user location data.");
-        }
+        if (string.IsNullOrWhiteSpace(user.UserName))
+            return BadRequest("Username is required.");
 
-        user.Timestamp = DateTime.UtcNow;
-        _groupLocations[user.GroupName].TryAdd(user);
+        _context.Users.Add(user);
+        await _context.SaveChangesAsync();
 
-        return Ok(new { Message = "Check-in successful." });
+        return Ok(user);
+    }
+
+    // POST: api/GroupCheckIn/group
+    [HttpPost("group")]
+    public async Task<IActionResult> CreateGroup([FromBody] Group group)
+    {
+        if (string.IsNullOrWhiteSpace(group.GroupName))
+            return BadRequest("Group name is required.");
+
+        _context.Groups.Add(group);
+        await _context.SaveChangesAsync();
+
+        return Ok(group);
+    }
+
+    // POST: api/GroupCheckIn/checkin
+    [HttpPost("checkin")]
+    public async Task<IActionResult> CheckIn([FromBody] LocationCheckIn checkIn)
+    {
+        checkIn.Timestamp = DateTime.UtcNow;
+        _context.LocationCheckIns.Add(checkIn);
+        await _context.SaveChangesAsync();
+
+        return Ok(checkIn);
     }
 
     [HttpGet("group/{groupName}")]
@@ -38,5 +67,18 @@ public class CheckInController : ControllerBase
         }
 
         return NotFound(new { Message = "Group not found." });
+    }
+
+    // GET: api/GroupCheckIn/checkins/group/1
+    [HttpGet("checkins/group/{groupId}")]
+    public async Task<IActionResult> GetCheckInsByGroup(int groupId)
+    {
+        var checkIns = await _context.LocationCheckIns
+            .Include(c => c.User)
+            .Where(c => c.GroupId == groupId)
+            .OrderByDescending(c => c.Timestamp)
+            .ToListAsync();
+
+        return Ok(checkIns);
     }
 }
