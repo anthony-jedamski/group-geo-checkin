@@ -1,0 +1,11 @@
+{
+  "Version": 1,
+  "Hash": "eYrCjOccjthygjqx24Iv4qRo0z1rVeGwWQMtslknf3Q=",
+  "Source": "GeoCheckInBackend",
+  "BasePath": "_content/GeoCheckInBackend",
+  "Mode": "Default",
+  "ManifestType": "Build",
+  "ReferencedProjectsConfiguration": [],
+  "DiscoveryPatterns": [],
+  "Assets": []
+}
