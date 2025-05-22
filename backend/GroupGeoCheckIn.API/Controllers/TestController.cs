@@ -1,3 +1,5 @@
+namespace GroupGeoCheckIn.Controllers;
+
 [ApiController]
 [Route("api/[controller]")]
 public class TestController : ControllerBase

@@ -1,3 +1,4 @@
+namespace GroupGeoCheckIn;
 public class Startup
 {
     public IConfiguration Configuration { get; }
@@ -13,7 +14,7 @@ public class Startup
         services.AddControllers();
 
         // Add other services like DbContext, Authentication, etc. here later
-        services.AddDbContext<CheckInContext>(options => 
+        services.AddDbContext<CheckInContext>(options =>
         options.UseNpgsql(Configuration.GetConnectionString("DefaultConnection")));
     }
 

@@ -1,4 +1,4 @@
-namespace GeoCheckInBackEnd.Models;
+namespace GroupGeoCheckIn.API.Models;
 public class UserLocation
 {
     public int Id { get; set; }

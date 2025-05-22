@@ -1,4 +1,4 @@
-namespace GeoCheckInBackEnd.Controllers;
+namespace GroupGeoCheckIn.Controllers;
 
 using GeoCheckInBackEnd.Models;
 using System.Collections.Concurrent;
@@ -7,13 +7,21 @@ using Microsoft.EntityFrameworkCore;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-using GeoCheckIn.Data;
-using GeoCheckIn.Models;
+using GroupGeoCheckIn.Data;
+using GroupGeoCheckIn.Models;
 
 [ApiController]
 [Route("[controller]")]
 public class CheckInController : ControllerBase
 {
+    /*
+        | Method | URL                                     | Description                |
+    | ------ | --------------------------------------- | -------------------------- |
+    | POST   | `/api/GroupCheckIn/register`            | Register a user            |
+    | POST   | `/api/GroupCheckIn/group`               | Create a group             |
+    | POST   | `/api/GroupCheckIn/checkin`             | Submit a location check-in |
+    | GET    | `/api/GroupCheckIn/checkins/group/{id}` | Get group check-ins        |
+    */
     private static readonly ConcurrentDictionary<string, UserLocation> _groupLocations = new();
     private readonly CheckInContext _context;
     public CheckInController(CheckInContext context)
