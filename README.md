@@ -1,1 +1,1 @@
-# GROUP-GEO-CHECKIN
+# group-geo-checkin
