@@ -34,13 +34,15 @@ public class CheckInController : ControllerBase
     [HttpPost("register")]
     public async Task<IActionResult> RegisterUser([FromBody] User user)
     {
-        if (string.IsNullOrWhiteSpace(user.UserName))
-            return BadRequest("Username is required.");
+        if (!string.IsNullOrWhiteSpace(user.Name))
+        {
+            _context.Users.Add(user);
+            await _context.SaveChangesAsync();
 
-        _context.Users.Add(user);
-        await _context.SaveChangesAsync();
+            return Ok(user);
+        }
 
-        return Ok(user);
+        return BadRequest("Username is required.");
     }
 
     // POST: api/GroupCheckIn/group
@@ -84,7 +86,7 @@ public class CheckInController : ControllerBase
     {
         var checkIns = await _context.LocationCheckIns
             .Include(c => c.User)
-            .Where(c => c.GroupId == groupId)
+            .Where(c => c.User.Group.Id == groupId)
             .OrderByDescending(c => c.Timestamp)
             .ToListAsync();
 
