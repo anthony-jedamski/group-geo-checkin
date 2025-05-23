@@ -1,4 +1,5 @@
 namespace GeoCheckInBackend;
+
 using GeoCheckInBackend.Data;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
