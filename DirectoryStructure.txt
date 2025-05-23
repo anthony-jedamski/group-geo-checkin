@@ -1,4 +1,7 @@
 Parent Direcory: /Anthony/Projects/group-geo-checkin
+|-.github
+	|-workflows
+		|-build-and-deploy.yml 
 |-docker-compose.yml
 |-README.md
 |-backend
