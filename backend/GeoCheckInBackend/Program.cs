@@ -41,7 +41,7 @@ public class Program(IConfiguration configuration)
                     services.AddControllers();
                     services.AddEndpointsApiExplorer();
                     services.AddSwaggerGen();
-                   services.AddDbContext<CheckInContext>(options => options.UseNpgsql(connectionString));
+                    services.AddDbContext<CheckInContext>(options => options.UseNpgsql(connectionString));
                 }).Configure((context, app) =>
                 {
                     var env = context.HostingEnvironment;
