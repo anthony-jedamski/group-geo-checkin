@@ -16,6 +16,7 @@ public class Startup
         services.AddSwaggerGen();
 
         // Add other services like DbContext, Authentication, etc. here later
+        
         global::System.Object value = services.AddDbContext<CheckInContext>(options =>
         options.UseNpgsql(Configuration.GetConnectionString("DefaultConnection")));
     }
