@@ -12,7 +12,10 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      ConnectionStrings__DefaultConnection: ${{ secrets.AZURE_CONNECTION_STRING }}
+        DB_HOST: ${{ secrets.DB_HOST }}
+        DB_NAME: ${{ secrets.DB_NAME }}
+        DB_USER: ${{ secrets.DB_USER }}
+        DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
 
     steps:
     - name: Checkout code

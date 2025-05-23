@@ -1,6 +1,7 @@
 namespace GeoCheckInBackend;
 using GeoCheckInBackend.Data;
 using Microsoft.EntityFrameworkCore;
+using Npgsql;
 
 public class Startup
 {
@@ -16,9 +17,17 @@ public class Startup
         services.AddSwaggerGen();
 
         // Add other services like DbContext, Authentication, etc. here later
-        
-        global::System.Object value = services.AddDbContext<CheckInContext>(options =>
-        options.UseNpgsql(Configuration.GetConnectionString("DefaultConnection")));
+        var builder = new NpgsqlConnectionStringBuilder
+        {
+            Host = Environment.GetEnvironmentVariable("DB_HOST"),
+            Port = int.Parse(Environment.GetEnvironmentVariable("DB_PORT")!),
+            Username = Environment.GetEnvironmentVariable("DB_USER"),
+            Password = Environment.GetEnvironmentVariable("DB_PASSWORD"),
+            Database = Environment.GetEnvironmentVariable("DB_NAME"),
+            SslMode = SslMode.Require
+        };
+        services.AddDbContext<CheckInContext>(options =>
+            options.UseNpgsql(builder.ConnectionString));
     }
 
     public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
