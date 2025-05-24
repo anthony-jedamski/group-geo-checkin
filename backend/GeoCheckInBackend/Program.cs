@@ -4,8 +4,10 @@ Project: GeoCheckInBackend
 Description: GeoCheckInBackend - A backend service for managing check-ins and groups.
 */
 
+using System.Text.Json;
 using GeoCheckInBackend.Data;
 using GeoCheckInBackend.Services;
+using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
 
@@ -67,6 +69,21 @@ public class Program(IConfiguration configuration)
                     app.UseEndpoints(endpoints =>
                     {
                         endpoints.MapControllers();
+                    });
+                    app.UseExceptionHandler(config =>
+                    {
+                        config.Run(async context =>
+                        {
+                            context.Response.StatusCode = 500;
+                            context.Response.ContentType = "application/json";
+
+                            var exception = context.Features.Get<IExceptionHandlerPathFeature>()?.Error;
+                            if (exception != null)
+                            {
+                                var result = JsonSerializer.Serialize(new { Message = "An unexpected error occurred.", Detail = exception.Message });
+                                await context.Response.WriteAsync(result);
+                            }
+                        });
                     });
                 });
             });
