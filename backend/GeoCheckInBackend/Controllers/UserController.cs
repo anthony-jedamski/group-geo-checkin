@@ -54,9 +54,10 @@ public class UserController : ControllerBase
     /// If the user already exists in the group, it does nothing.
     /// </summary>
     /// <param name="userName"></param>
+    /// <param name="email"></param>
     /// <param name="groupName"></param>
     /// <returns></returns>/
-    [HttpPost("register/username/{userName}/groupname/{groupName}")]
+    [HttpPost("register/username/{userName}/email/{email}/groupname/{groupName}")]
     public async Task<IActionResult> RegisterUser(string userName, string email, string? groupName = null)
     {
         var group = await _groupService.AddUserToGroupAsync(userName, email, groupName);

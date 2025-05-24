@@ -1,11 +1,3 @@
-/home/anthony/Projects/group-geo-checkin/backend/GeoCheckInBackend/obj/Debug/net8.0/GeoCheckInBackend.csproj.AssemblyReference.cache
-/home/anthony/Projects/group-geo-checkin/backend/GeoCheckInBackend/obj/Debug/net8.0/GeoCheckInBackend.GeneratedMSBuildEditorConfig.editorconfig
-/home/anthony/Projects/group-geo-checkin/backend/GeoCheckInBackend/obj/Debug/net8.0/GeoCheckInBackend.AssemblyInfoInputs.cache
-/home/anthony/Projects/group-geo-checkin/backend/GeoCheckInBackend/obj/Debug/net8.0/GeoCheckInBackend.AssemblyInfo.cs
-/home/anthony/Projects/group-geo-checkin/backend/GeoCheckInBackend/obj/Debug/net8.0/GeoCheckInBackend.csproj.CoreCompileInputs.cache
-/home/anthony/Projects/group-geo-checkin/backend/GeoCheckInBackend/obj/Debug/net8.0/GeoCheckInBackend.MvcApplicationPartsAssemblyInfo.cs
-/home/anthony/Projects/group-geo-checkin/backend/GeoCheckInBackend/obj/Debug/net8.0/GeoCheckInBackend.MvcApplicationPartsAssemblyInfo.cache
-/home/anthony/Projects/group-geo-checkin/backend/GeoCheckInBackend/obj/Debug/net8.0/GeoCheckInBackend.sourcelink.json
 /home/anthony/Projects/group-geo-checkin/backend/GeoCheckInBackend/bin/Debug/net8.0/appsettings.Development.json
 /home/anthony/Projects/group-geo-checkin/backend/GeoCheckInBackend/bin/Debug/net8.0/appsettings.json
 /home/anthony/Projects/group-geo-checkin/backend/GeoCheckInBackend/bin/Debug/net8.0/GeoCheckInBackend
@@ -120,6 +112,14 @@
 /home/anthony/Projects/group-geo-checkin/backend/GeoCheckInBackend/bin/Debug/net8.0/zh-Hans/Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.resources.dll
 /home/anthony/Projects/group-geo-checkin/backend/GeoCheckInBackend/bin/Debug/net8.0/zh-Hant/Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.resources.dll
 /home/anthony/Projects/group-geo-checkin/backend/GeoCheckInBackend/bin/Debug/net8.0/runtimes/browser/lib/net8.0/System.Text.Encodings.Web.dll
+/home/anthony/Projects/group-geo-checkin/backend/GeoCheckInBackend/obj/Debug/net8.0/GeoCheckInBackend.csproj.AssemblyReference.cache
+/home/anthony/Projects/group-geo-checkin/backend/GeoCheckInBackend/obj/Debug/net8.0/GeoCheckInBackend.GeneratedMSBuildEditorConfig.editorconfig
+/home/anthony/Projects/group-geo-checkin/backend/GeoCheckInBackend/obj/Debug/net8.0/GeoCheckInBackend.AssemblyInfoInputs.cache
+/home/anthony/Projects/group-geo-checkin/backend/GeoCheckInBackend/obj/Debug/net8.0/GeoCheckInBackend.AssemblyInfo.cs
+/home/anthony/Projects/group-geo-checkin/backend/GeoCheckInBackend/obj/Debug/net8.0/GeoCheckInBackend.csproj.CoreCompileInputs.cache
+/home/anthony/Projects/group-geo-checkin/backend/GeoCheckInBackend/obj/Debug/net8.0/GeoCheckInBackend.MvcApplicationPartsAssemblyInfo.cs
+/home/anthony/Projects/group-geo-checkin/backend/GeoCheckInBackend/obj/Debug/net8.0/GeoCheckInBackend.MvcApplicationPartsAssemblyInfo.cache
+/home/anthony/Projects/group-geo-checkin/backend/GeoCheckInBackend/obj/Debug/net8.0/GeoCheckInBackend.sourcelink.json
 /home/anthony/Projects/group-geo-checkin/backend/GeoCheckInBackend/obj/Debug/net8.0/staticwebassets.build.json
 /home/anthony/Projects/group-geo-checkin/backend/GeoCheckInBackend/obj/Debug/net8.0/staticwebassets.development.json
 /home/anthony/Projects/group-geo-checkin/backend/GeoCheckInBackend/obj/Debug/net8.0/staticwebassets/msbuild.GeoCheckInBackend.Microsoft.AspNetCore.StaticWebAssets.props
