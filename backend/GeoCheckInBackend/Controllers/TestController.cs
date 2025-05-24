@@ -12,7 +12,7 @@ using Microsoft.AspNetCore.Mvc;
 [Route("api/test")]
 public class TestController : ControllerBase
 {
-    [HttpGet]
+    [HttpPost]
     public IActionResult Get()
     {
         return Ok("API is working!");

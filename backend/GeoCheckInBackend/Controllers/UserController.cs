@@ -14,6 +14,7 @@ using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 
 [ApiController]
 [Route("api/user")]
@@ -26,6 +27,24 @@ public class UserController : ControllerBase
     {
         _context = context;
         _groupService = groupService;
+    }
+
+    [HttpGet("get/{userName}")]
+    public async Task<IActionResult> GetUser(string userName)
+    {
+        if (string.IsNullOrWhiteSpace(userName))
+        {
+            return BadRequest("User name is required.");
+        }
+        var user = await _context.Users
+            .FirstOrDefaultAsync(u => u.Name.Equals(userName, StringComparison.OrdinalIgnoreCase));
+        
+        if (user == null)
+        {
+            return NotFound(new { Message = "User not found." });
+        }
+        
+        return Ok(user);
     }
 
     /// <summary>
