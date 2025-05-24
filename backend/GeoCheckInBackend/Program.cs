@@ -1,5 +1,6 @@
 
 using GeoCheckInBackend.Data;
+using GeoCheckInBackend.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;

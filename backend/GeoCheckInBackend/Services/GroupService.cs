@@ -1,4 +1,9 @@
-namespace GroupGeoCheckIn.Services.GroupServices;
+namespace GroupGeoCheckIn.Services;
+
+using GeoCheckInBackend.Models;
+using GeoCheckInBackend.Data;
+using Microsoft.EntityFrameworkCore;
+
 public class GroupService : IGroupService
 {
     private readonly CheckInContext _context;

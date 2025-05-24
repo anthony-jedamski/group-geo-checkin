@@ -1,7 +1,6 @@
-namespace GroupGeoCheckIn.Services.GroupServices;
+namespace GroupGeoCheckIn.Services;
 
 using GeoCheckInBackend.Models;
-using Microsoft.AspNetCore.Mvc;
 
 public interface IGroupService
 {
