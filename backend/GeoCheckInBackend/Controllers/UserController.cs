@@ -8,6 +8,7 @@ namespace GeoCheckInBackend.Controllers;
 
 using GeoCheckInBackend.Data;
 using GeoCheckInBackend.Models;
+using GeoCheckInBackend.Models.Requests;
 using GeoCheckInBackend.Services;
 using System.Collections.Concurrent;
 using Microsoft.AspNetCore.Mvc;
@@ -36,7 +37,7 @@ public class UserController : ControllerBase
     {
         if (string.IsNullOrWhiteSpace(userName))
         {
-            return BadRequest("User name is required.");
+            return BadRequest(new { Message = "User name is required." });
         }
 
         var user = await _context.Users
@@ -70,15 +71,15 @@ public class UserController : ControllerBase
     {
         if (string.IsNullOrWhiteSpace(request.UserName) || string.IsNullOrWhiteSpace(request.Email))
         {
-            return BadRequest("Username and email are required.");
+            return BadRequest(new { Message = "Username and email are required." });
         }
 
         var user = request.GroupId is not null ?
-            await _userService.GetUserAsync(request.UserName, request.GroupId) : 
+            await _userService.GetUserAsync(request.UserName, request.GroupId) :
             await _userService.GetUserAsync(request.UserName, request.GroupName);
         if (user != null)
         {
-            return Ok("User with this username or email already exists.");
+            return Ok(new { Message = "User with this username or email already exists." });
         }
 
         var group = await _groupService.AddUserToGroupAsync(request.UserName, request.Email, request.GroupName);
@@ -88,7 +89,7 @@ public class UserController : ControllerBase
         var userInGroup = group.Users.FirstOrDefault(u => request.UserName.ToLower() == u.UserName.ToLower());
         if (userInGroup is null)
         {
-            return NotFound("User not found in the group.");
+            return NotFound(new { Message = "User not found in the group." });
         }
 
         _context.Users.Add(userInGroup);
@@ -108,6 +109,10 @@ public class UserController : ControllerBase
     [HttpDelete("delete/username/{userName}/groupname/{groupName}")]
     public async Task<IActionResult> RemoveUserFromGroup(string userName, string groupName)
     {
+        if (string.IsNullOrWhiteSpace(userName) || string.IsNullOrWhiteSpace(groupName))
+        {
+            return BadRequest(new { Message = "User name and group name are required." });
+        }
         try
         {
             var group = await _groupService.RemoveUserFromGroupAsync(userName, groupName);
@@ -119,11 +124,11 @@ public class UserController : ControllerBase
         }
         catch (ArgumentException ex)
         {
-            return BadRequest(new { Message = ex.Message });
+            return BadRequest(new { ex.Message });
         }
         catch (InvalidOperationException ex)
         {
-            return NotFound(new { Message = ex.Message });
+            return NotFound(new { ex.Message });
         }
     }
     /// <summary>
@@ -134,12 +139,12 @@ public class UserController : ControllerBase
     [HttpDelete("delete/username/{userName}")]
     public async Task<IActionResult> RemoveUserFromSystem(string? userName)
     {
+        if (string.IsNullOrWhiteSpace(userName))
+            return BadRequest(new { Message = "User name is required." });
+
         try
         {
-            if (string.IsNullOrWhiteSpace(userName))
-            {
-                return BadRequest("User name is required.");
-            }
+
             // Check if the user exists in any group
             var userGroups = await _groupService.GetUserGroupsAsync(userName)!;
             if (userGroups == null || !userGroups.Any())
@@ -151,19 +156,48 @@ public class UserController : ControllerBase
             {
                 await _groupService.RemoveUserFromGroupAsync(userName, userGroup.Name);
             }
-    
+
             return Ok(new { Message = "User removed successfully." });
         }
         catch (ArgumentException ex)
         {
-            return BadRequest(new { Message = ex.Message });
+            return BadRequest(new { ex.Message });
         }
         catch (InvalidOperationException ex)
         {
-            return NotFound(new { Message = ex.Message });
+            return NotFound(new { ex.Message });
         }
     }
 
+    /// <summary>
+    /// Updates a user's group by adding them to a new group.
+    /// If the user does not exist, it creates a new group with the specified name.
+    /// If the new group name is the same as the current group name, it does nothing.
+    /// </summary>
+    /// <param name="userName"></param>
+    /// <param name="groupName"></param>
+    /// <param name="newGroupName"></param>
+    /// <returns></returns>
+    [HttpPatch("updateUserGroup")]
+    public async Task<IActionResult> UpdateUserGroup([FromBody] UpdateUserRequest request)
+    {
+        if (string.IsNullOrWhiteSpace(request.UserName) || string.IsNullOrWhiteSpace(request.OldGroupName) || string.IsNullOrWhiteSpace(request.NewGroupName))
+        {
+            return BadRequest(new { Message = "User name, group name, and new group name are required." });
+        }
+
+        try
+        {
+            await _groupService.RemoveUserFromGroupAsync(request.UserName, request.OldGroupName);
+            var group = await _groupService.AddUserToGroupAsync(request.UserName, request.NewGroupName);
+            return Ok(group);
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(new {ex.Message });
+        }
+    }
+   
     /// <summary>
     /// Updates a user's group by adding them to a new group.
     /// If the user does not exist, it creates a new group with the specified name.
@@ -178,7 +212,7 @@ public class UserController : ControllerBase
     {
         if (string.IsNullOrWhiteSpace(userName) || string.IsNullOrWhiteSpace(groupName) || string.IsNullOrWhiteSpace(newGroupName))
         {
-            return BadRequest("User name, group name, and new group name are required.");
+            return BadRequest(new { Message = "User name, group name, and new group name are required." });
         }
 
         try
@@ -191,4 +225,5 @@ public class UserController : ControllerBase
             return BadRequest(new { Message = ex.Message });
         }
     }
+    
 }

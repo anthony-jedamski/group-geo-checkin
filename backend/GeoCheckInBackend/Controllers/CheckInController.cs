@@ -43,7 +43,32 @@ public class CheckInController : ControllerBase
     [Produces("application/json")]
     public async Task<IActionResult> CheckIn([FromBody] LocationCheckIn checkIn)
     {
+        if (checkIn == null)
+        {
+            return BadRequest(new { Message = "Check-in data is required." });
+        }
+        if (checkIn.User == null || checkIn.User.Id <= 0)
+        {
+            return BadRequest(new { Message = "User ID is required." });
+        }
+
         checkIn.Timestamp = DateTime.UtcNow;
+        try 
+        {
+            // Retrieve the user from the database
+            var user = await _context.Users.FindAsync(checkIn.User.Id);
+            if (user == null)
+            {
+                return NotFound(new { Message = "User not found." });
+            }
+
+            // Assign the user to the check-in
+            checkIn.User = user;
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { Message = "An error occurred while processing the check-in.", Error = ex.Message });
+        }
         _context.LocationCheckIns.Add(checkIn);
         await _context.SaveChangesAsync();
 
@@ -63,7 +88,31 @@ public class CheckInController : ControllerBase
         {
             return NotFound(new { Message = "Check-in not found." });
         }
-
+        // Check if the user exists
+        if (checkIn.User == null)
+        {
+            return BadRequest(new { Message = "Check-in does not have a valid user." });
+        }
+        // Check if the user is part of a group
+        var user = await _context.Users.FindAsync(checkIn.User.Id);
+        if (user == null)
+        {
+            return NotFound(new { Message = "User not found." });
+        }
+        if (user.GroupId <= 0)
+        {
+            return BadRequest(new { Message = "User is not part of a group." });
+        }
+        // Delete the check-in
+        if (checkIn.User.GroupId != user.GroupId)
+        {
+            return BadRequest(new { Message = "Check-in does not belong to the user's group." });
+        }
+        // Remove the check-in from the database
+        if (checkIn.User.GroupId <= 0)
+        {
+            return BadRequest(new { Message = "User is not part of a valid group." });
+        }
         _context.LocationCheckIns.Remove(checkIn);
         await _context.SaveChangesAsync();
 
@@ -83,6 +132,26 @@ public class CheckInController : ControllerBase
             .Where(c => c.User.Id == userId)
             .OrderByDescending(c => c.Timestamp)
             .ToListAsync();
+        if (checkIns == null || !checkIns.Any())
+        {
+            return NotFound(new { Message = "No check-ins found for this user." });
+        }
+        if (checkIns.Any(c => c.User == null))
+        {
+            return BadRequest(new { Message = "Some check-ins do not have a valid user." });
+        }
+        if (checkIns.Any(c => c.User.GroupId <= 0))
+        {
+            return BadRequest(new { Message = "Some check-ins are not associated with a valid group." });
+        }
+        if (checkIns.Any(c => c.User.GroupId != checkIns.First().User.GroupId))
+        {
+            return BadRequest(new { Message = "Check-ins do not belong to the same group." });
+        }
+        if (checkIns.Any(c => c.User.GroupId <= 0))
+        {
+            return BadRequest(new { Message = "User is not part of a valid group." });
+        }
 
         return Ok(checkIns);
     }
@@ -100,7 +169,26 @@ public class CheckInController : ControllerBase
             .Where(c => c.User.GroupId == groupId)
             .OrderByDescending(c => c.Timestamp)
             .ToListAsync();
-
+        if (checkIns == null || !checkIns.Any())
+        {
+            return NotFound(new { Message = "No check-ins found for this group." });
+        }
+        if (checkIns.Any(c => c.User == null))
+        {
+            return BadRequest(new { Message = "Some check-ins do not have a valid user." });
+        }
+        if (checkIns.Any(c => c.User.GroupId <= 0))
+        {
+            return BadRequest(new { Message = "Some check-ins are not associated with a valid group." });
+        }
+        if (checkIns.Any(c => c.User.GroupId != groupId))
+        {
+            return BadRequest(new { Message = "Check-ins do not belong to the specified group." });
+        }
+        if (checkIns.Any(c => c.User.GroupId <= 0))
+        {
+            return BadRequest(new { Message = "User is not part of a valid group." });
+        }
         return Ok(checkIns);
     }
 }

@@ -39,15 +39,18 @@ public class GroupController : ControllerBase
     public async Task<IActionResult> GroupCreate(string groupName)
     {
         if (string.IsNullOrWhiteSpace(groupName))
-            return BadRequest("Group name is required.");
+            return BadRequest(new {Message = "Group name is required."});
 
-        var allGroups = await _context.Groups.ToListAsync();
-
-        if (allGroups.Any(g => allGroups.Any(g => EF.Functions.ILike(g.Name, groupName))))
+        var allGroups = await _context.Groups.FirstOrDefaultAsync(g => EF.Functions.ILike(g.Name, groupName));
+        if (allGroups is not null)
         {
-            return Ok("Group with this name already exists.");
+            return Ok(new
+            {
+                Message = "Group with this name already exists.",
+                Group = allGroups
+            });
         }
-
+     
         try
         {
             var group = await _groupService.CreateGroupAsync(groupName);
@@ -55,7 +58,7 @@ public class GroupController : ControllerBase
         }
         catch (Exception ex)
         {
-            return BadRequest(ex.Message);
+            return BadRequest(new {ex.Message});
         }
     }
 
@@ -68,6 +71,9 @@ public class GroupController : ControllerBase
     [HttpGet("get/locations/{groupName}")]
     public IActionResult GetGroupLocations(string groupName)
     {
+        if (string.IsNullOrWhiteSpace(groupName))
+            return BadRequest(new { Message = "Group name is required." });
+
         if (_groupLocations.TryGetValue(groupName, out var locations))
         {
             return Ok(locations);
@@ -84,9 +90,13 @@ public class GroupController : ControllerBase
     [HttpGet("get/{groupName}")]
     public IActionResult GetGroup(string groupName)
     {
+        if (string.IsNullOrWhiteSpace(groupName))
+            return BadRequest(new { Message = "Group name is required." });
+
         var group = _context.Groups
             .Include(g => g.Users)
             .FirstOrDefault(g => EF.Functions.ILike(g.Name, groupName));
+            
         if (group == null)
         {
             return NotFound(new { Message = "Group not found." });
@@ -119,7 +129,7 @@ public class GroupController : ControllerBase
     public IActionResult UpdateGroupLocation(string groupName, [FromBody] UserLocation location)
     {
         if (string.IsNullOrWhiteSpace(groupName) || location == null)
-            return BadRequest("Invalid group name or location data.");
+            return BadRequest(new { Message = "Invalid group name or location data." });
 
         if (_groupLocations.TryGetValue(groupName, out var existingLocation))
         {
@@ -144,7 +154,7 @@ public class GroupController : ControllerBase
     public async Task<IActionResult> DeleteGroup(string groupName)
     {
         if (string.IsNullOrWhiteSpace(groupName))
-            return BadRequest("Group name is required.");
+            return BadRequest(new {Message = "Group name is required."});
 
         var group = await _context.Groups.FirstOrDefaultAsync(g => EF.Functions.ILike(g.Name, groupName));
 
@@ -159,10 +169,13 @@ public class GroupController : ControllerBase
         return Ok(new { Message = "Group deleted successfully." });
     }
 
+    /// <summary>
+    /// Deletes all groups.
+    /// </summary>
+    /// <returns></returns>
     [HttpDelete("delete/all")]
     public async Task<IActionResult> DeleteAllGroups()
     {
-        
         var groups = await _context.Groups.ToListAsync();
         if (groups == null || !groups.Any())
             return NotFound(new { Message = "No groups found." });

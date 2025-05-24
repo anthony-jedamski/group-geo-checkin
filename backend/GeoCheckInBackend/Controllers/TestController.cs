@@ -15,6 +15,6 @@ public class TestController : ControllerBase
     [HttpPost]
     public IActionResult Get()
     {
-        return Ok("API is working!");
+        return Ok(new {Message = "API is working!"});
     }
 }
