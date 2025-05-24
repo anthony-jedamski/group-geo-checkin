@@ -32,7 +32,7 @@ public class GroupService : IGroupService
             throw new ArgumentException("Group name is required.");
 
         var allGroups = await _context.Groups.ToListAsync();
-    
+
         if (allGroups.Any(g => EF.Functions.ILike(g.Name, groupName)))
             return allGroups.FirstOrDefault(g => EF.Functions.ILike(g.Name, groupName))!;
 
@@ -71,7 +71,7 @@ public class GroupService : IGroupService
             group = await CreateGroupAsync(groupName ?? "Default Group");
         }
 
-        if (group.Users.Any(u => EF.Functions.ILike(u.UserName, userName)))
+        if (group.Users.Any(u => u.UserName.ToLower() == userName.ToLower()))
             return group; // User already exists in the group
 
 
@@ -111,7 +111,7 @@ public class GroupService : IGroupService
         if (group == null)
             throw new InvalidOperationException("Group not found.");
 
-        var user = group.Users.FirstOrDefault(u => EF.Functions.ILike(u.UserName, userName));
+        var user = group.Users.FirstOrDefault(u => u.UserName.ToLower() == userName.ToLower());
         if (user == null)
             throw new InvalidOperationException("User not found in the group.");
 
@@ -138,5 +138,15 @@ public class GroupService : IGroupService
             .ToListAsync();
 
         return groups;
+    }
+
+    public async Task<Group?> GetGroupByNameAsync(string groupName)
+    {
+        if (string.IsNullOrWhiteSpace(groupName))
+            return null;
+
+        return await _context.Groups
+            .Include(g => g.Users)
+            .FirstOrDefaultAsync(g => EF.Functions.ILike(g.Name, groupName));
     }
 }

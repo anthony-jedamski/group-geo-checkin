@@ -13,4 +13,5 @@ public interface IGroupService
     Task<Group> AddUserToGroupAsync(string userName, string? email = null, string? groupName = null);
     Task<Group> RemoveUserFromGroupAsync(string userName, string groupName);
     Task<List<Group>>? GetUserGroupsAsync(string userName);
+    Task<Group?> GetGroupByNameAsync(string groupName);
 }

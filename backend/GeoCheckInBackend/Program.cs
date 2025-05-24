@@ -48,6 +48,7 @@ public class Program(IConfiguration configuration)
                     services.AddSwaggerGen();
                     services.AddDbContext<CheckInContext>(options => options.UseNpgsql(connectionString));
                     services.AddScoped<IGroupService, GroupService>();
+                    services.AddScoped<IUserService, UserService>();
 
                 }).Configure((context, app) =>
                 {

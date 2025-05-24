@@ -65,7 +65,7 @@ public class GroupController : ControllerBase
     /// <param name="userName"></param>
     /// <param name="groupName"></param>
     /// <returns></returns>
-    [HttpGet("get/{groupName}")]
+    [HttpGet("get/locations/{groupName}")]
     public IActionResult GetGroupLocations(string groupName)
     {
         if (_groupLocations.TryGetValue(groupName, out var locations))
@@ -76,6 +76,38 @@ public class GroupController : ControllerBase
         return NotFound(new { Message = "Group not found." });
     }
 
+    /// <summary>
+    /// Gets a group by its name.
+    /// </summary>
+    /// <param name="groupName"></param>
+    /// <returns></returns>
+    [HttpGet("get/{groupName}")]
+    public IActionResult GetGroup(string groupName)
+    {
+        var group = _context.Groups
+            .Include(g => g.Users)
+            .FirstOrDefault(g => EF.Functions.ILike(g.Name, groupName));
+        if (group == null)
+        {
+            return NotFound(new { Message = "Group not found." });
+        }
+        return Ok(group);
+    }
+
+    [HttpGet("get/all")]
+    public async Task<IActionResult> GetAllGroups()
+    {
+        var groups = await _context.Groups
+            .Include(g => g.Users)
+            .ToListAsync();
+
+        if (groups == null || !groups.Any())
+        {
+            return NotFound(new { Message = "No groups found." });
+        }
+
+        return Ok(groups);
+    }
 
     /// <summary>
     /// Updates the location of a group.
@@ -125,5 +157,21 @@ public class GroupController : ControllerBase
         _groupLocations.TryRemove(groupName, out _);
 
         return Ok(new { Message = "Group deleted successfully." });
+    }
+
+    [HttpDelete("delete/all")]
+    public async Task<IActionResult> DeleteAllGroups()
+    {
+        
+        var groups = await _context.Groups.ToListAsync();
+        if (groups == null || !groups.Any())
+            return NotFound(new { Message = "No groups found." });
+        foreach (var group in groups)
+        {
+            _context.Groups.Remove(group);
+        }
+        await _context.SaveChangesAsync();
+        _groupLocations.Clear();
+        return Ok(new { Message = "All groups deleted successfully." });
     }
 }

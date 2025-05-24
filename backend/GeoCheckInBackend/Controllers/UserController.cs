@@ -23,10 +23,12 @@ public class UserController : ControllerBase
     private static readonly ConcurrentDictionary<string, UserLocation> _groupLocations = new();
     private readonly CheckInContext _context;
     private readonly IGroupService _groupService;
-    public UserController(CheckInContext context, IGroupService groupService)
+    private readonly IUserService _userService;
+    public UserController(CheckInContext context, IGroupService groupService, IUserService userService)
     {
         _context = context;
         _groupService = groupService;
+        _userService = userService;
     }
 
     [HttpGet("get/username/{userName}")]
@@ -47,6 +49,22 @@ public class UserController : ControllerBase
         return Ok(user);
     }
 
+    /// <summary>
+    /// Retrieves all users from the system.
+    /// If no users are found, it returns a NotFound result with a message.
+    /// </summary>
+    /// <returns></returns>
+    [HttpGet("get/all")]
+    public async Task<IActionResult> GetAllUsers()
+    {
+        var users = await _context.Users.ToListAsync();
+        if (users == null || !users.Any())
+        {
+            return NotFound(new { Message = "No users found." });
+        }
+        return Ok(users);
+    }
+
     [HttpPost("register")]
     public async Task<IActionResult> RegisterUser([FromBody] RegisterUserRequest request)
     {
@@ -55,11 +73,19 @@ public class UserController : ControllerBase
             return BadRequest("Username and email are required.");
         }
 
+        var user = request.GroupId is not null ?
+            await _userService.GetUserAsync(request.UserName, request.GroupId) : 
+            await _userService.GetUserAsync(request.UserName, request.GroupName);
+        if (user != null)
+        {
+            return Ok("User with this username or email already exists.");
+        }
+
         var group = await _groupService.AddUserToGroupAsync(request.UserName, request.Email, request.GroupName);
 
         _groupLocations.TryAdd(request.UserName, new UserLocation());
 
-        var userInGroup = group.Users.FirstOrDefault(u => EF.Functions.ILike(u.UserName, request.UserName));
+        var userInGroup = group.Users.FirstOrDefault(u => request.UserName.ToLower() == u.UserName.ToLower());
         if (userInGroup is null)
         {
             return NotFound("User not found in the group.");
