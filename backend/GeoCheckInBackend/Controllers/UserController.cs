@@ -79,24 +79,28 @@ public class UserController : ControllerBase
             await _userService.GetUserAsync(request.UserName, request.GroupName);
         if (user != null)
         {
-            return Ok(new { Message = "User with this username or email already exists." });
+            return Ok(new { Message = "User with this username or email already exists.", User = user });
         }
 
         var group = await _groupService.AddUserToGroupAsync(request.UserName, request.Email, request.GroupName);
-
-        _groupLocations.TryAdd(request.UserName, new UserLocation());
-
-        var userInGroup = group.Users.FirstOrDefault(u => request.UserName.ToLower() == u.UserName.ToLower());
-        if (userInGroup is null)
+        if (group is not null)
         {
-            return NotFound(new { Message = "User not found in the group." });
+            user = group.Id > 0 ?
+            await _userService.GetUserAsync(request.UserName, request.GroupId) :
+            await _userService.GetUserAsync(request.UserName, request.GroupName);
+            if (user != null)
+            {
+                _context.Users.Add(user);
+                _context.Groups.Update(group);
+                await _context.SaveChangesAsync();
+                return Ok(new { Message = "Successfully added user to group.", User = user, Group = group });
+            }
         }
-
-        _context.Users.Add(userInGroup);
-        _context.Groups.Update(group);
-        await _context.SaveChangesAsync();
-
-        return Ok(userInGroup);
+        else
+        {
+            return BadRequest(new { Message = "Failed to add user to group." });
+        }
+        return BadRequest(new { Message = "Failed to register user." });
     }
 
     /// <summary>

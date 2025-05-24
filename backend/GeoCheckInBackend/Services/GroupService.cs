@@ -31,23 +31,44 @@ public class GroupService : IGroupService
         if (string.IsNullOrWhiteSpace(groupName))
             throw new ArgumentException("Group name is required.");
 
+        var group = await _context.Groups.FirstOrDefaultAsync(g => EF.Functions.ILike(g.Name, groupName));
+        if (group is not null)
+        {
+            return group; // Group already exists
+        }
+        var topGroup = await _context.Groups
+            .OrderByDescending(g => g.Id)
+            .FirstOrDefaultAsync();
         var allGroups = await _context.Groups.ToListAsync();
+        int newGroupId = 0;
+        if (topGroup is not null && topGroup.Id > 0)
+        {
+            newGroupId = topGroup.Id + 1;
+            if (allGroups.Any(g => g.Id == newGroupId))
+            {
+                throw new InvalidOperationException("Group ID already exists. Please try again.");
+            }
+        }
+        else
+        {
+            // If no groups exist, start with ID 1
+            if (allGroups.Any(g => g.Id == 1))
+            {
+                throw new InvalidOperationException("Group ID 1 already exists. Please try again.");
+            }
+            newGroupId = 1;
+        }
 
-        if (allGroups.Any(g => EF.Functions.ILike(g.Name, groupName)))
-            return allGroups.FirstOrDefault(g => EF.Functions.ILike(g.Name, groupName))!;
-
-        var groupId = allGroups.Any() ? allGroups.Max(g => g.Id) + 1 : 1;
-
-        var group = new Group
+        var newGroup = new Group
         {
             Name = groupName,
-            Id = groupId,
+            Id = newGroupId,
             Users = new List<User>()
         };
 
-        _context.Groups.Add(group);
+        _context.Groups.Add(newGroup);
         await _context.SaveChangesAsync();
-        return group;
+        return newGroup;
     }
 
     /// <summary>
