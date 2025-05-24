@@ -96,6 +96,11 @@ public class UserController : ControllerBase
         {
             group = await _groupService.CreateGroupAsync(request.GroupName!);
         }
+        else
+        {
+            preExistingGroup = true;
+        }
+        //Build the user object.
         var userObj = new User
         {
             UserName = request.UserName,
@@ -103,15 +108,12 @@ public class UserController : ControllerBase
             GroupId = group.Id
         };
         _context.Users.Add(userObj);
-        if(!preExistingGroup)
+        if (!preExistingGroup)
         {
             group.Users.Add(userObj);
+            _context.Groups.Update(group);
         }
-        if(group.Users.Any(u => u.UserName.ToLower() == request.UserName.ToLower()))
-        {
-            return Ok(new { Message = "User already exists in the group.", User = userObj, Group = group });
-        }
-        _context.Groups.Update(group);
+        // Save the user to the database.
         await _context.SaveChangesAsync();
         return Ok(new { Message = "Successfully added user to group.", User = User, Group = group });
     }
