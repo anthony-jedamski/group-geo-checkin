@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("GeoCheckInBackend")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+89f8be363e207824d753a5fda2230c8236449ab5")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+0199d3c52be14baf0da91149ca08741437f1a350")]
 [assembly: System.Reflection.AssemblyProductAttribute("GeoCheckInBackend")]
 [assembly: System.Reflection.AssemblyTitleAttribute("GeoCheckInBackend")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

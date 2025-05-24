@@ -57,7 +57,7 @@ public class GroupService : IGroupService
     /// <param name="groupName"></param>
     /// <returns></returns>
     /// <exception cref="ArgumentException"></exception>
-    public async Task<Group> AddUserToGroupAsync(string userName, string? groupName = null)
+    public async Task<Group> AddUserToGroupAsync(string userName, string? email = null, string? groupName = null)
     {
         if (string.IsNullOrWhiteSpace(userName))
             throw new ArgumentException("User name is required.");
@@ -71,10 +71,17 @@ public class GroupService : IGroupService
             group = await CreateGroupAsync(groupName ?? "Default Group");
         }
 
+        if (group.Users.Any(u => EF.Functions.ILike(u.UserName, userName)))
+            return group; // User already exists in the group
+
+
+        var emailName = email ?? string.Concat(userName, new Random().Next(0, 1000).ToString(), "@example.com");
+
         var user = new User
         {
-            Name = userName,
-            Group = group
+            UserName = userName,
+            GroupId = group.Id,
+            Email = emailName,
         };
 
         group.Users.Add(user);
@@ -104,7 +111,7 @@ public class GroupService : IGroupService
         if (group == null)
             throw new InvalidOperationException("Group not found.");
 
-        var user = group.Users.FirstOrDefault(u => EF.Functions.ILike(u.Name, userName));
+        var user = group.Users.FirstOrDefault(u => EF.Functions.ILike(u.UserName, userName));
         if (user == null)
             throw new InvalidOperationException("User not found in the group.");
 
@@ -127,7 +134,7 @@ public class GroupService : IGroupService
             throw new ArgumentException("User name is required.");
 
         var groups = await _context.Groups
-            .Where(g => g.Users.Any(u => EF.Functions.ILike(u.Name, userName)))
+            .Where(g => g.Users.Any(u => EF.Functions.ILike(u.UserName, userName)))
             .ToListAsync();
 
         return groups;

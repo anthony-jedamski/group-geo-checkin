@@ -55,7 +55,7 @@ public class CheckInController : ControllerBase
     /// </summary>
     /// <param name="id"></param>
     /// <returns></returns>/
-    [HttpDelete("{id}")]
+    [HttpDelete("delete/checkinId/{id}")]
     public async Task<IActionResult> DeleteCheckIn(int id)
     {
         var checkIn = await _context.LocationCheckIns.FindAsync(id);
@@ -75,7 +75,7 @@ public class CheckInController : ControllerBase
     /// </summary>
     /// <param name="userId"></param>
     /// <returns></returns>
-    [HttpGet("/user/{userId}")]
+    [HttpGet("get/user/{userId}")]
     public async Task<IActionResult> GetCheckInsByUser(int userId)
     {
         var checkIns = await _context.LocationCheckIns
@@ -92,12 +92,12 @@ public class CheckInController : ControllerBase
     /// </summary>
     /// <param name="groupId"></param>
     /// <returns></returns>
-    [HttpGet("group/{groupId}")]
+    [HttpGet("get/groupid/{groupId}")]
     public async Task<IActionResult> GetCheckInsByGroup(int groupId)
     {
         var checkIns = await _context.LocationCheckIns
             .Include(c => c.User)
-            .Where(c => c.User.Group.Id == groupId)
+            .Where(c => c.User.GroupId == groupId)
             .OrderByDescending(c => c.Timestamp)
             .ToListAsync();
 

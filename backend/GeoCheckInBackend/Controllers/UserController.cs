@@ -29,7 +29,7 @@ public class UserController : ControllerBase
         _groupService = groupService;
     }
 
-    [HttpGet("get/{userName}")]
+    [HttpGet("get/username/{userName}")]
     public async Task<IActionResult> GetUser(string userName)
     {
         if (string.IsNullOrWhiteSpace(userName))
@@ -38,7 +38,7 @@ public class UserController : ControllerBase
         }
 
         var user = await _context.Users
-            .FirstOrDefaultAsync(u => EF.Functions.ILike(u.Name, userName)); // For PostgreSQL
+            .FirstOrDefaultAsync(u => EF.Functions.ILike(u.UserName, userName)); // For PostgreSQL
 
         if (user == null)
         {
@@ -56,12 +56,12 @@ public class UserController : ControllerBase
     /// <param name="userName"></param>
     /// <param name="groupName"></param>
     /// <returns></returns>/
-    [HttpPost("register/{userName}/group/{groupName}")]
-    public async Task<IActionResult> RegisterUser(string userName, string? groupName = null)
+    [HttpPost("register/username/{userName}/groupname/{groupName}")]
+    public async Task<IActionResult> RegisterUser(string userName, string email, string? groupName = null)
     {
-        var group = await _groupService.AddUserToGroupAsync(userName, groupName);
+        var group = await _groupService.AddUserToGroupAsync(userName, email, groupName);
         _groupLocations.TryAdd(userName, new UserLocation());
-        var userInGroup = group.Users.FirstOrDefault(u => EF.Functions.ILike(u.Name, userName));
+        var userInGroup = group.Users.FirstOrDefault(u => EF.Functions.ILike(u.UserName, userName));
         if (userInGroup is null)
         {
             return NotFound("User not found in the group.");
@@ -69,7 +69,7 @@ public class UserController : ControllerBase
         _context.Users.Add(userInGroup);
         _context.Groups.Update(group);
         await _context.SaveChangesAsync();
-        var user = group.Users.FirstOrDefault(u=> EF.Functions.ILike(u.Name, userName));
+        var user = group.Users.FirstOrDefault(u=> EF.Functions.ILike(u.UserName, userName));
         if (user == null)
         {
             return NotFound(new { Message = "User not found in the group." });
@@ -84,7 +84,7 @@ public class UserController : ControllerBase
     /// <param name="userName"></param>
     /// <param name="groupName"></param>
     /// <returns></returns>
-    [HttpDelete("delete/{userName}/group/{groupName}")]
+    [HttpDelete("delete/username/{userName}/groupname/{groupName}")]
     public async Task<IActionResult> RemoveUserFromGroup(string userName, string groupName)
     {
         try
@@ -110,7 +110,7 @@ public class UserController : ControllerBase
     /// </summary>
     /// <param name="userName"></param>
     /// <returns></returns>
-    [HttpDelete("delete/{userName}")]
+    [HttpDelete("delete/username/{userName}")]
     public async Task<IActionResult> RemoveUserFromSystem(string? userName)
     {
         try
@@ -152,7 +152,7 @@ public class UserController : ControllerBase
     /// <param name="groupName"></param>
     /// <param name="newGroupName"></param>
     /// <returns></returns>
-    [HttpPatch("update/{userName}/{groupName}/{newGroupName}")]
+    [HttpPatch("update/username/{userName}/oldgroupname/{groupName}/newgroupname/{newGroupName}")]
     public async Task<IActionResult> UpdateUserGroup(string userName, string groupName, string newGroupName)
     {
         if (string.IsNullOrWhiteSpace(userName) || string.IsNullOrWhiteSpace(groupName) || string.IsNullOrWhiteSpace(newGroupName))
