@@ -1,7 +1,14 @@
+/*
+Developer: Anthony Jedamski
+Project: GeoCheckInBackend
+Description: GeoCheckInBackend - A backend service for managing check-ins and groups.
+*/
+
 namespace GeoCheckInBackend.Controllers;
 
 using GeoCheckInBackend.Data;
 using GeoCheckInBackend.Models;
+using GeoCheckInBackend.Services;
 using System.Collections.Concurrent;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -9,127 +16,49 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 
-
-
 [ApiController]
 [Route("[controller]")]
 public class CheckInController : ControllerBase
 {
-    /*
-        | Method | URL                                     | Description                |
-    | ------ | --------------------------------------- | -------------------------- |
-    | POST   | `/api/GroupCheckIn/register`            | Register a user            |
-    | POST   | `/api/GroupCheckIn/group`               | Create a group             |
-    | POST   | `/api/GroupCheckIn/checkin`             | Submit a location check-in |
-    | GET    | `/api/GroupCheckIn/checkins/group/{id}` | Get group check-ins        |
-    */
     private static readonly ConcurrentDictionary<string, UserLocation> _groupLocations = new();
     private readonly CheckInContext _context;
-
-    public CheckInController(CheckInContext context)
+    private readonly IGroupService _groupService;
+    public CheckInController(CheckInContext context, IGroupService groupService)
     {
         _context = context;
+        _groupService = groupService;
     }
 
-
-    // POST: api/GroupCheckIn/register
-    [HttpPost("register")]
-    public async Task<IActionResult> RegisterUser([FromBody] User user)
+    /// <summary>
+    /// Registers a user to a group.
+    /// If the group does not exist, it creates a new group with the specified name.
+    /// If the user does not exist in the group, it adds the user to the group.
+    /// If the user already exists in the group, it does nothing.
+    /// </summary>
+    /// <param name="userName"></param>
+    /// <param name="groupName"></param>
+    /// <returns></returns>/
+    [HttpPost("register/user/{userName}/group/{groupName}")]
+    public async Task<IActionResult> RegisterUser(string userName, string? groupName = null)
     {
-        bool createGroup = false;
-        var allGroups = await _context.Groups.ToListAsync();
-        //If user group is not included in the request.
-        if (user.Group is null)
+        var group = await _groupService.AddUserToGroupAsync(userName, groupName);
+        _groupLocations.TryAdd(userName, new UserLocation());
+        _context.Users.Add(group.Users.FirstOrDefault(u => u.Name.Equals(userName, StringComparison.OrdinalIgnoreCase))!);
+        if (group.Users.FirstOrDefault(u => u.Name.Equals(userName, StringComparison.OrdinalIgnoreCase)) is null)
         {
-            if (allGroups.Any(g => g.Name.Equals(user.Group?.Name, StringComparison.OrdinalIgnoreCase)))
-            {
-                user.Group = allGroups.First(g => g.Name.Equals(user.Group?.Name, StringComparison.OrdinalIgnoreCase));
-            }
-            else
-            {
-                createGroup = true;
-            }
+            return BadRequest("User not found in the group.");
         }
-        else
-        {
-            if (user.Group.Name is not null && allGroups.Any(g => g.Name.Equals(user.Group.Name, StringComparison.OrdinalIgnoreCase)))
-            {
-                user.Group = allGroups.First(g => g.Name.Equals(user.Group.Name, StringComparison.OrdinalIgnoreCase));
-            }
-            else if(user.Group.Id > 0 && allGroups.Any(g => g.Id == user.Group.Id))
-            {
-                user.Group = allGroups.First(g => g.Id == user.Group.Id);
-            }
-            else
-            {
-                createGroup = true;
-            }
-        }
-        if (createGroup)//todo: finish creating group.
-        {
-            if (string.IsNullOrWhiteSpace(user.Group?.Name))
-                return BadRequest("Group name is required.");
-            var groupId = allGroups.Any() ? allGroups.Max(g => g.Id) + 1 : 1;
-            user.Group.Id = groupId;
-            _context.Groups.Add(user.Group);
-            allGroups = await _context.Groups.ToListAsync();
-            if (allGroups.Any(g => g.Name.Equals(user.Group.Name, StringComparison.OrdinalIgnoreCase)))
-            {
-                user.Group = allGroups.First(g => g.Name.Equals(user.Group.Name, StringComparison.OrdinalIgnoreCase));
-            }
-            else
-            {
-                return BadRequest("Group creation failed.");
-            }
-        }
-   
-
-        var allUsers = await _context.Users.ToListAsync();
-        if (allUsers.Any(u => u.Name.Equals(user.Name, StringComparison.OrdinalIgnoreCase)))
-        {
-            return Ok("User with this name already exists.");
-        }
-        
-
-        //Handle the case where the user is not in a group.
-        int? userId;
-        if(user.Id == 0)
-        {
-            userId = allUsers.Any() ? allUsers.Max(u => u.Id) + 1 : 1;
-        }
-        else
-        {
-            userId = user.Id;
-        }
-        //Check to see if the user is already in the group.
-        if (user.Group?.Users != null && user.Group.Users.Any(u => u.Name.Equals(user.Name, StringComparison.OrdinalIgnoreCase)))
-        {
-            return Ok("User with this name already exists in the group.");
-        }
-
-        //If the user is not in the group, add them to the group.
-        user.Group?.Users.Add(user);
-        _groupLocations.TryAdd(user.Name, new UserLocation());
-        _context.Users.Add(user);
-        _context.Groups.Update(user.Group!);
+        _context.Groups.Update(group);
         await _context.SaveChangesAsync();
-        return Ok(user);
+        return Ok(group.Users.FirstOrDefault(u => u.Name.Equals(userName, StringComparison.OrdinalIgnoreCase)));
     }
 
-/*     // POST: api/GroupCheckIn/group
-    [HttpPost("group")]
-    public async Task<IActionResult> CreateGroup([FromBody] Group group)
-    {
-        if (string.IsNullOrWhiteSpace(group.Name))
-            return BadRequest("Group name is required.");
-
-        _context.Groups.Add(group);
-        await _context.SaveChangesAsync();
-
-        return Ok(group);
-    }
- */
-
+    /// <summary>
+    /// Records a check-in for a user at a specific location.
+    /// The check-in includes the user's ID, location, and timestamp.
+    /// </summary>
+    /// <param name="checkIn"></param>
+    /// <returns></returns>
     [HttpPost("checkin")]
     public async Task<IActionResult> CheckIn([FromBody] LocationCheckIn checkIn)
     {
@@ -140,5 +69,97 @@ public class CheckInController : ControllerBase
         return Ok(checkIn);
     }
 
-    
+    /// <summary>
+    /// Deletes a check-in by its ID.
+    /// </summary>
+    /// <param name="id"></param>
+    /// <returns></returns>/
+    [HttpDelete("checkin/{id}")]
+    public async Task<IActionResult> DeleteCheckIn(int id)
+    {
+        var checkIn = await _context.LocationCheckIns.FindAsync(id);
+        if (checkIn == null)
+        {
+            return NotFound(new { Message = "Check-in not found." });
+        }
+
+        _context.LocationCheckIns.Remove(checkIn);
+        await _context.SaveChangesAsync();
+
+        return Ok(new { Message = "Check-in deleted successfully." });
+    }
+
+    /// <summary>
+    /// Gets all check-ins for a specific user by their user ID.
+    /// </summary>
+    /// <param name="userId"></param>
+    /// <returns></returns>
+    [HttpGet("checkins/user/{userId}")]
+    public async Task<IActionResult> GetCheckInsByUser(int userId)
+    {
+        var checkIns = await _context.LocationCheckIns
+            .Include(c => c.User)
+            .Where(c => c.User.Id == userId)
+            .OrderByDescending(c => c.Timestamp)
+            .ToListAsync();
+
+        return Ok(checkIns);
+    }
+
+    /// <summary>
+    /// Removes a user from a group.
+    /// If the user does not exist in the group, it returns a NotFound result.
+    /// </summary>
+    /// <param name="userName"></param>
+    /// <param name="groupName"></param>
+    /// <returns></returns>
+    [HttpDelete("user/{userName}/group/{groupName}")]
+    public async Task<IActionResult> RemoveUserFromGroup(string userName, string groupName)
+    {
+        try
+        {
+            var group = await _groupService.RemoveUserFromGroupAsync(userName, groupName);
+            if (group == null)
+            {
+                return NotFound(new { Message = "User or group not found." });
+            }
+            return Ok(group);
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(new { Message = ex.Message });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return NotFound(new { Message = ex.Message });
+        }
+    }
+
+    /// <summary>
+    /// Updates a user's group by adding them to a new group.
+    /// If the user does not exist, it creates a new group with the specified name.
+    /// If the new group name is the same as the current group name, it does nothing.
+    /// </summary>
+    /// <param name="userName"></param>
+    /// <param name="groupName"></param>
+    /// <param name="newGroupName"></param>
+    /// <returns></returns>
+    [HttpPatch("user/{userName}/{groupName}/{newGroupName}")]
+    public async Task<IActionResult> UpdateUserGroup(string userName, string groupName, string newGroupName)
+    {
+        if (string.IsNullOrWhiteSpace(userName) || string.IsNullOrWhiteSpace(groupName) || string.IsNullOrWhiteSpace(newGroupName))
+        {
+            return BadRequest("User name, group name, and new group name are required.");
+        }
+
+        try
+        {
+            var group = await _groupService.AddUserToGroupAsync(userName, newGroupName);
+            return Ok(group);
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(new { Message = ex.Message });
+        }
+    }
 }

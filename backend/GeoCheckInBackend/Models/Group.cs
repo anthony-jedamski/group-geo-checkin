@@ -1,3 +1,10 @@
+/*
+Developer: Anthony Jedamski
+Project: GeoCheckInBackend
+Description: GeoCheckInBackend - A backend service for managing check-ins and groups.
+*/
+
+
 namespace GeoCheckInBackend.Models;
 
 public class Group

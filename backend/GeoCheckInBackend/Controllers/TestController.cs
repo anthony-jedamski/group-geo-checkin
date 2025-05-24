@@ -1,14 +1,12 @@
+/*
+Developer: Anthony Jedamski
+Project: GeoCheckInBackend
+Description: GeoCheckInBackend - A backend service for managing check-ins and groups.
+*/
+
 namespace GeoCheckInBackend.Controllers;
 
-using GeoCheckInBackend.Data;
-using GeoCheckInBackend.Models;
-using System.Collections.Concurrent;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using System;
-using System.Linq;
-using System.Threading.Tasks;
-
 
 [ApiController]
 [Route("api/test")]

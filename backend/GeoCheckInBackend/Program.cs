@@ -1,11 +1,12 @@
+/*
+Developer: Anthony Jedamski
+Project: GeoCheckInBackend
+Description: GeoCheckInBackend - A backend service for managing check-ins and groups.
+*/
 
 using GeoCheckInBackend.Data;
-using GeoCheckInBackend.Models;
+using GeoCheckInBackend.Services;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 using Npgsql;
 
 namespace GeoCheckInBackend;
@@ -46,9 +47,8 @@ public class Program(IConfiguration configuration)
                     services.AddEndpointsApiExplorer();
                     services.AddSwaggerGen();
                     services.AddDbContext<CheckInContext>(options => options.UseNpgsql(connectionString));
-                    //services.AddScoped<IGroupService, GroupService>();
+                    services.AddScoped<IGroupService, GroupService>();
 
-  
                 }).Configure((context, app) =>
                 {
                     var env = context.HostingEnvironment;

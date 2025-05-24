@@ -1,0 +1,11 @@
+$ cat .gitignore
+
+/bin
+/obj
+*.user
+*.suo
+*.cache
+*.pdb
+*.log
+.vscode/
+
