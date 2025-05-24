@@ -47,35 +47,29 @@ public class UserController : ControllerBase
         return Ok(user);
     }
 
-    /// <summary>
-    /// Registers a user to a group.
-    /// If the group does not exist, it creates a new group with the specified name.
-    /// If the user does not exist in the group, it adds the user to the group.
-    /// If the user already exists in the group, it does nothing.
-    /// </summary>
-    /// <param name="userName"></param>
-    /// <param name="email"></param>
-    /// <param name="groupName"></param>
-    /// <returns></returns>/
-    [HttpPost("register/username/{userName}/email/{email}/groupname/{groupName}")]
-    public async Task<IActionResult> RegisterUser(string userName, string email, string? groupName = null)
+    [HttpPost("register")]
+    public async Task<IActionResult> RegisterUser([FromBody] RegisterUserRequest request)
     {
-        var group = await _groupService.AddUserToGroupAsync(userName, email, groupName);
-        _groupLocations.TryAdd(userName, new UserLocation());
-        var userInGroup = group.Users.FirstOrDefault(u => EF.Functions.ILike(u.UserName, userName));
+        if (string.IsNullOrWhiteSpace(request.UserName) || string.IsNullOrWhiteSpace(request.Email))
+        {
+            return BadRequest("Username and email are required.");
+        }
+
+        var group = await _groupService.AddUserToGroupAsync(request.UserName, request.Email, request.GroupName);
+
+        _groupLocations.TryAdd(request.UserName, new UserLocation());
+
+        var userInGroup = group.Users.FirstOrDefault(u => EF.Functions.ILike(u.UserName, request.UserName));
         if (userInGroup is null)
         {
             return NotFound("User not found in the group.");
         }
+
         _context.Users.Add(userInGroup);
         _context.Groups.Update(group);
         await _context.SaveChangesAsync();
-        var user = group.Users.FirstOrDefault(u=> EF.Functions.ILike(u.UserName, userName));
-        if (user == null)
-        {
-            return NotFound(new { Message = "User not found in the group." });
-        }
-        return Ok(user);
+
+        return Ok(userInGroup);
     }
 
     /// <summary>
