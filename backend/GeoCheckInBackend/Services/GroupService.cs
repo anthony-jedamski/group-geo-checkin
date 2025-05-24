@@ -36,14 +36,11 @@ public class GroupService : IGroupService
         {
             return group; // Group already exists
         }
-        var topGroup = await _context.Groups
-            .OrderByDescending(g => g.Id)
-            .FirstOrDefaultAsync();
-        var allGroups = await _context.Groups.ToListAsync();
+        var allGroups = await _context.Groups.OrderByDescending(g => g.Id).ToListAsync();
         int newGroupId = 0;
-        if (topGroup is not null && topGroup.Id > 0)
+        if (allGroups is not null && allGroups.First().Id > 0)
         {
-            newGroupId = topGroup.Id + 1;
+            newGroupId = allGroups.First().Id + 1;
             if (allGroups.Any(g => g.Id == newGroupId))
             {
                 throw new InvalidOperationException("Group ID already exists. Please try again.");
@@ -52,10 +49,6 @@ public class GroupService : IGroupService
         else
         {
             // If no groups exist, start with ID 1
-            if (allGroups.Any(g => g.Id == 1))
-            {
-                throw new InvalidOperationException("Group ID 1 already exists. Please try again.");
-            }
             newGroupId = 1;
         }
 
