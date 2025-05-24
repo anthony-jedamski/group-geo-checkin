@@ -16,7 +16,8 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 
-
+[ApiController]
+[Route("api/group")]
 public class GroupController : ControllerBase
 {
     private readonly CheckInContext _context;
@@ -34,8 +35,8 @@ public class GroupController : ControllerBase
     /// </summary>
     /// <param name="groupName"></param>
     /// <returns></returns>
-    [HttpPost("group/create")]
-    public async Task<IActionResult> GroupCreate([FromBody] string groupName)
+    [HttpPost("create/{groupName}")]
+    public async Task<IActionResult> GroupCreate(string groupName)
     {
         if (string.IsNullOrWhiteSpace(groupName))
             return BadRequest("Group name is required.");
@@ -64,7 +65,7 @@ public class GroupController : ControllerBase
     /// <param name="userName"></param>
     /// <param name="groupName"></param>
     /// <returns></returns>
-    [HttpGet("group/{groupName}")]
+    [HttpGet("get/{groupName}")]
     public IActionResult GetGroupLocations(string groupName)
     {
         if (_groupLocations.TryGetValue(groupName, out var locations))
@@ -75,22 +76,6 @@ public class GroupController : ControllerBase
         return NotFound(new { Message = "Group not found." });
     }
 
-    /// <summary>
-    /// Gets all check-ins for a specific user by their user ID.
-    /// </summary>
-    /// <param name="groupId"></param>
-    /// <returns></returns>
-    [HttpGet("checkins/group/{groupId}")]
-    public async Task<IActionResult> GetCheckInsByGroup(int groupId)
-    {
-        var checkIns = await _context.LocationCheckIns
-            .Include(c => c.User)
-            .Where(c => c.User.Group.Id == groupId)
-            .OrderByDescending(c => c.Timestamp)
-            .ToListAsync();
-
-        return Ok(checkIns);
-    }
 
     /// <summary>
     /// Updates the location of a group.
@@ -98,7 +83,7 @@ public class GroupController : ControllerBase
     /// <param name="groupName"></param>
     /// <param name="location"></param>
     /// <returns></returns>
-    [HttpPut("group/{groupName}")]
+    [HttpPut("update/{groupName}")]
     public IActionResult UpdateGroupLocation(string groupName, [FromBody] UserLocation location)
     {
         if (string.IsNullOrWhiteSpace(groupName) || location == null)
@@ -123,7 +108,7 @@ public class GroupController : ControllerBase
     /// </summary>
     /// <param name="groupName"></param>
     /// <returns></returns>
-    [HttpDelete("group/{groupName}")]
+    [HttpDelete("delete/{groupName}")]
     public async Task<IActionResult> DeleteGroup(string groupName)
     {
         if (string.IsNullOrWhiteSpace(groupName))

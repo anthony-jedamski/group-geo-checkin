@@ -11,19 +11,18 @@ using GeoCheckInBackend.Models;
 using GeoCheckInBackend.Services;
 using System.Collections.Concurrent;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
 
 [ApiController]
-[Route("[controller]")]
-public class CheckInController : ControllerBase
+[Route("api/user")]
+public class UserController : ControllerBase
 {
     private static readonly ConcurrentDictionary<string, UserLocation> _groupLocations = new();
     private readonly CheckInContext _context;
     private readonly IGroupService _groupService;
-    public CheckInController(CheckInContext context, IGroupService groupService)
+    public UserController(CheckInContext context, IGroupService groupService)
     {
         _context = context;
         _groupService = groupService;
@@ -38,7 +37,7 @@ public class CheckInController : ControllerBase
     /// <param name="userName"></param>
     /// <param name="groupName"></param>
     /// <returns></returns>/
-    [HttpPost("register/user/{userName}/group/{groupName}")]
+    [HttpPost("register/{userName}/group/{groupName}")]
     public async Task<IActionResult> RegisterUser(string userName, string? groupName = null)
     {
         var group = await _groupService.AddUserToGroupAsync(userName, groupName);
@@ -54,66 +53,13 @@ public class CheckInController : ControllerBase
     }
 
     /// <summary>
-    /// Records a check-in for a user at a specific location.
-    /// The check-in includes the user's ID, location, and timestamp.
-    /// </summary>
-    /// <param name="checkIn"></param>
-    /// <returns></returns>
-    [HttpPost("checkin")]
-    public async Task<IActionResult> CheckIn([FromBody] LocationCheckIn checkIn)
-    {
-        checkIn.Timestamp = DateTime.UtcNow;
-        _context.LocationCheckIns.Add(checkIn);
-        await _context.SaveChangesAsync();
-
-        return Ok(checkIn);
-    }
-
-    /// <summary>
-    /// Deletes a check-in by its ID.
-    /// </summary>
-    /// <param name="id"></param>
-    /// <returns></returns>/
-    [HttpDelete("checkin/{id}")]
-    public async Task<IActionResult> DeleteCheckIn(int id)
-    {
-        var checkIn = await _context.LocationCheckIns.FindAsync(id);
-        if (checkIn == null)
-        {
-            return NotFound(new { Message = "Check-in not found." });
-        }
-
-        _context.LocationCheckIns.Remove(checkIn);
-        await _context.SaveChangesAsync();
-
-        return Ok(new { Message = "Check-in deleted successfully." });
-    }
-
-    /// <summary>
-    /// Gets all check-ins for a specific user by their user ID.
-    /// </summary>
-    /// <param name="userId"></param>
-    /// <returns></returns>
-    [HttpGet("checkins/user/{userId}")]
-    public async Task<IActionResult> GetCheckInsByUser(int userId)
-    {
-        var checkIns = await _context.LocationCheckIns
-            .Include(c => c.User)
-            .Where(c => c.User.Id == userId)
-            .OrderByDescending(c => c.Timestamp)
-            .ToListAsync();
-
-        return Ok(checkIns);
-    }
-
-    /// <summary>
     /// Removes a user from a group.
     /// If the user does not exist in the group, it returns a NotFound result.
     /// </summary>
     /// <param name="userName"></param>
     /// <param name="groupName"></param>
     /// <returns></returns>
-    [HttpDelete("user/{userName}/group/{groupName}")]
+    [HttpDelete("delete/{userName}/group/{groupName}")]
     public async Task<IActionResult> RemoveUserFromGroup(string userName, string groupName)
     {
         try
@@ -134,6 +80,43 @@ public class CheckInController : ControllerBase
             return NotFound(new { Message = ex.Message });
         }
     }
+    /// <summary>
+    /// Removes a user from the system.
+    /// </summary>
+    /// <param name="userName"></param>
+    /// <returns></returns>
+    [HttpDelete("delete/{userName}")]
+    public async Task<IActionResult> RemoveUserFromSystem(string? userName)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(userName))
+            {
+                return BadRequest("User name is required.");
+            }
+            // Check if the user exists in any group
+            var userGroups = await _groupService.GetUserGroupsAsync(userName)!;
+            if (userGroups == null || !userGroups.Any())
+            {
+                return NotFound(new { Message = "User not found in any group." });
+            }
+            // Remove the user from all groups
+            foreach (var userGroup in userGroups)
+            {
+                await _groupService.RemoveUserFromGroupAsync(userName, userGroup.Name);
+            }
+    
+            return Ok(new { Message = "User removed successfully." });
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(new { Message = ex.Message });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return NotFound(new { Message = ex.Message });
+        }
+    }
 
     /// <summary>
     /// Updates a user's group by adding them to a new group.
@@ -144,7 +127,7 @@ public class CheckInController : ControllerBase
     /// <param name="groupName"></param>
     /// <param name="newGroupName"></param>
     /// <returns></returns>
-    [HttpPatch("user/{userName}/{groupName}/{newGroupName}")]
+    [HttpPatch("update/{userName}/{groupName}/{newGroupName}")]
     public async Task<IActionResult> UpdateUserGroup(string userName, string groupName, string newGroupName)
     {
         if (string.IsNullOrWhiteSpace(userName) || string.IsNullOrWhiteSpace(groupName) || string.IsNullOrWhiteSpace(newGroupName))

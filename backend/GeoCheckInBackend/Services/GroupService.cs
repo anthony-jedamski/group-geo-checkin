@@ -113,4 +113,21 @@ public class GroupService : IGroupService
 
         return group;
     }
+
+    /// <summary>
+    /// Gets all groups that a user belongs to.
+    /// </summary>
+    /// <param name="userName"></param>
+    /// <returns></returns>
+    /// <exception cref="ArgumentException"></exception>
+    public async Task<List<Group>>? GetUserGroupsAsync(string userName)
+    {
+        if (string.IsNullOrWhiteSpace(userName))
+            throw new ArgumentException("User name is required.");
+
+        var groups = await _context.Groups
+            .Where(g => g.Users.Any(u => u.Name.Equals(userName, StringComparison.OrdinalIgnoreCase))).ToListAsync();
+
+        return groups;
+    }
 }
