@@ -1,11 +1,13 @@
-namespace GeoCheckInBackend;
 
 using GeoCheckInBackend.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Npgsql;
 
+namespace GeoCheckInBackend;
 public class Program(IConfiguration configuration)
 {
     public IConfiguration Configuration { get; } = configuration;
@@ -29,6 +31,7 @@ public class Program(IConfiguration configuration)
         // This enables MVC controller support
         var hostBuilder = CreateHostBuilder(connectionString);
         hostBuilder.Build().Run();
+
     }
 
     public static IHostBuilder CreateHostBuilder(string connectionString) =>
@@ -42,6 +45,9 @@ public class Program(IConfiguration configuration)
                     services.AddEndpointsApiExplorer();
                     services.AddSwaggerGen();
                     services.AddDbContext<CheckInContext>(options => options.UseNpgsql(connectionString));
+                    //services.AddScoped<IGroupService, GroupService>();
+
+  
                 }).Configure((context, app) =>
                 {
                     var env = context.HostingEnvironment;
