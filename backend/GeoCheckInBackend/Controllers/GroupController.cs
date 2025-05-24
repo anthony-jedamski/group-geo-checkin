@@ -43,7 +43,7 @@ public class GroupController : ControllerBase
 
         var allGroups = await _context.Groups.ToListAsync();
 
-        if (allGroups.Any(g => g.Name.Equals(groupName, StringComparison.OrdinalIgnoreCase)))
+        if (allGroups.Any(g => allGroups.Any(g => EF.Functions.ILike(g.Name, groupName))))
         {
             return Ok("Group with this name already exists.");
         }
@@ -114,7 +114,7 @@ public class GroupController : ControllerBase
         if (string.IsNullOrWhiteSpace(groupName))
             return BadRequest("Group name is required.");
 
-        var group = await _context.Groups.FirstOrDefaultAsync(g => g.Name.Equals(groupName, StringComparison.OrdinalIgnoreCase));
+        var group = await _context.Groups.FirstOrDefaultAsync(g => EF.Functions.ILike(g.Name, groupName));
 
         if (group == null)
             return NotFound(new { Message = "Group not found." });

@@ -36,14 +36,14 @@ public class UserController : ControllerBase
         {
             return BadRequest("User name is required.");
         }
+
         var user = await _context.Users
-            .FirstOrDefaultAsync(u => u.Name.Equals(userName, StringComparison.OrdinalIgnoreCase));
-        
+            .FirstOrDefaultAsync(u => EF.Functions.ILike(u.Name, userName)); // For PostgreSQL
+
         if (user == null)
         {
             return NotFound(new { Message = "User not found." });
         }
-        
         return Ok(user);
     }
 
@@ -61,14 +61,20 @@ public class UserController : ControllerBase
     {
         var group = await _groupService.AddUserToGroupAsync(userName, groupName);
         _groupLocations.TryAdd(userName, new UserLocation());
-        _context.Users.Add(group.Users.FirstOrDefault(u => u.Name.Equals(userName, StringComparison.OrdinalIgnoreCase))!);
-        if (group.Users.FirstOrDefault(u => u.Name.Equals(userName, StringComparison.OrdinalIgnoreCase)) is null)
+        var userInGroup = group.Users.FirstOrDefault(u => EF.Functions.ILike(u.Name, userName));
+        if (userInGroup is null)
         {
-            return BadRequest("User not found in the group.");
+            return NotFound("User not found in the group.");
         }
+        _context.Users.Add(userInGroup);
         _context.Groups.Update(group);
         await _context.SaveChangesAsync();
-        return Ok(group.Users.FirstOrDefault(u => u.Name.Equals(userName, StringComparison.OrdinalIgnoreCase)));
+        var user = group.Users.FirstOrDefault(u=> EF.Functions.ILike(u.Name, userName));
+        if (user == null)
+        {
+            return NotFound(new { Message = "User not found in the group." });
+        }
+        return Ok(user);
     }
 
     /// <summary>

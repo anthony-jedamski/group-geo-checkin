@@ -32,8 +32,9 @@ public class GroupService : IGroupService
             throw new ArgumentException("Group name is required.");
 
         var allGroups = await _context.Groups.ToListAsync();
-        if (allGroups.Any(g => g.Name.Equals(groupName, StringComparison.OrdinalIgnoreCase)))
-            throw new InvalidOperationException("Group with this name already exists.");
+    
+        if (allGroups.Any(g => EF.Functions.ILike(g.Name, groupName)))
+            return allGroups.FirstOrDefault(g => EF.Functions.ILike(g.Name, groupName))!;
 
         var groupId = allGroups.Any() ? allGroups.Max(g => g.Id) + 1 : 1;
 
@@ -63,7 +64,7 @@ public class GroupService : IGroupService
 
         var group = await _context.Groups
             .Include(g => g.Users)
-            .FirstOrDefaultAsync(g => g.Name.Equals(groupName, StringComparison.OrdinalIgnoreCase));
+            .FirstOrDefaultAsync(g => EF.Functions.ILike(g.Name, groupName!));
 
         if (group == null)
         {
@@ -98,12 +99,12 @@ public class GroupService : IGroupService
 
         var group = await _context.Groups
             .Include(g => g.Users)
-            .FirstOrDefaultAsync(g => g.Name.Equals(groupName, StringComparison.OrdinalIgnoreCase));
+            .FirstOrDefaultAsync(g => EF.Functions.ILike(g.Name, groupName));
 
         if (group == null)
             throw new InvalidOperationException("Group not found.");
 
-        var user = group.Users.FirstOrDefault(u => u.Name.Equals(userName, StringComparison.OrdinalIgnoreCase));
+        var user = group.Users.FirstOrDefault(u => EF.Functions.ILike(u.Name, userName));
         if (user == null)
             throw new InvalidOperationException("User not found in the group.");
 
@@ -126,7 +127,8 @@ public class GroupService : IGroupService
             throw new ArgumentException("User name is required.");
 
         var groups = await _context.Groups
-            .Where(g => g.Users.Any(u => u.Name.Equals(userName, StringComparison.OrdinalIgnoreCase))).ToListAsync();
+            .Where(g => g.Users.Any(u => EF.Functions.ILike(u.Name, userName)))
+            .ToListAsync();
 
         return groups;
     }
