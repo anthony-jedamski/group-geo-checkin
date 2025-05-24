@@ -8,6 +8,7 @@ namespace GeoCheckInBackend.Services;
 using GeoCheckInBackend.Models;
 public interface IUserService
 {
+    Task<List<User>> GetUsersAsync(string? userName);
     Task<User?> GetUserAsync(string? userName, int? groupId);
     Task<User?> GetUserAsync(string? userName, string? groupName);
 }

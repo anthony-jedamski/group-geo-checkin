@@ -22,7 +22,7 @@ public class UserService : IUserService
     {
         if (string.IsNullOrEmpty(userName) || groupId <= 0)
         {
-            return null; 
+            return null;
         }
 
         var user = await _context.Users
@@ -32,12 +32,12 @@ public class UserService : IUserService
 
         return user;
     }
-    
+
     public async Task<User?> GetUserAsync(string? userName, string? groupName)
     {
         if (string.IsNullOrEmpty(userName) || string.IsNullOrEmpty(groupName))
         {
-            return null; 
+            return null;
         }
 
         var group = await _context.Groups
@@ -48,11 +48,25 @@ public class UserService : IUserService
             return null; // Group not found
         }
 
-         var user = await _context.Users
-                    .FirstOrDefaultAsync(u =>
-                        EF.Functions.ILike(u.UserName, userName) &&
-                        u.GroupId == group.Id); 
+        var user = await _context.Users
+                   .FirstOrDefaultAsync(u =>
+                       EF.Functions.ILike(u.UserName, userName) &&
+                       u.GroupId == group.Id);
 
         return user;
+    }
+
+    public async Task<List<User>> GetUsersAsync(string? userName)
+    {
+        if (string.IsNullOrEmpty(userName))
+        {
+            return new List<User>();
+        }
+
+        var users = new List<User>();
+        users = await _context.Users
+          .Where(u => EF.Functions.ILike(u.UserName, userName))
+          .ToListAsync();
+           return users;
     }
 }

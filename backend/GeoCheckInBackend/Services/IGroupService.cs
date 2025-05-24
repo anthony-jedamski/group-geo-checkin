@@ -14,4 +14,5 @@ public interface IGroupService
     Task<Group> RemoveUserFromGroupAsync(string userName, string groupName);
     Task<List<Group>>? GetUserGroupsAsync(string userName);
     Task<Group?> GetGroupByNameAsync(string groupName);
+    Task<Group?> GetGroupByIdAsync(int groupId);
 }

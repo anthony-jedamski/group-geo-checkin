@@ -98,8 +98,6 @@ public class GroupService : IGroupService
             Email = emailName,
         };
 
-        group.Users.Add(user);
-        _context.Users.Add(user);
         await _context.SaveChangesAsync();
 
         return group;
@@ -162,5 +160,15 @@ public class GroupService : IGroupService
         return await _context.Groups
             .Include(g => g.Users)
             .FirstOrDefaultAsync(g => EF.Functions.ILike(g.Name, groupName));
+    }
+
+    public async Task<Group?> GetGroupByIdAsync(int groupId)
+    {
+        if (groupId <= 0)
+            return null;
+
+        return await _context.Groups
+            .Include(g => g.Users)
+            .FirstOrDefaultAsync(g => g.Id == groupId);
     }
 }

@@ -73,34 +73,47 @@ public class UserController : ControllerBase
         {
             return BadRequest(new { Message = "Username and email are required." });
         }
-
-        var user = request.GroupId is not null ?
-            await _userService.GetUserAsync(request.UserName, request.GroupId) :
-            await _userService.GetUserAsync(request.UserName, request.GroupName);
-        if (user != null)
+        var users = await _userService.GetUsersAsync(request.UserName);
+        //Does the user already exist?
+        if (users.Any())
         {
-            return Ok(new { Message = "User with this username or email already exists.", User = user });
+            return Ok(new { Message = "User with this username or email already exists.", Users = users });
         }
-
-        var group = await _groupService.AddUserToGroupAsync(request.UserName, request.Email, request.GroupName);
-        if (group is not null)
+        // If the group name is not provided, we return a BadRequest.
+        if (string.IsNullOrWhiteSpace(request.GroupName) && request.GroupId is null)
         {
-            user = group.Id > 0 ?
-            await _userService.GetUserAsync(request.UserName, request.GroupId) :
-            await _userService.GetUserAsync(request.UserName, request.GroupName);
-            if (user != null)
-            {
-                _context.Users.Add(user);
-                _context.Groups.Update(group);
-                await _context.SaveChangesAsync();
-                return Ok(new { Message = "Successfully added user to group.", User = user, Group = group });
-            }
+            return BadRequest(new { Message = "Group name or group ID is required." });
         }
-        else
+        // If the group name is provided, we check if it exists.
+        if (request.GroupName is not null && request.GroupName.Length < 3)
         {
-            return BadRequest(new { Message = "Failed to add user to group." });
+            return BadRequest(new { Message = "Group name must be at least 3 characters long." });
         }
-        return BadRequest(new { Message = "Failed to register user." });
+        var group = await _groupService.GetGroupByNameAsync(request.GroupName!);
+        //Does the group already exist?
+        bool preExistingGroup = false;
+        if (group is null)
+        {
+            group = await _groupService.CreateGroupAsync(request.GroupName!);
+        }
+        var userObj = new User
+        {
+            UserName = request.UserName,
+            Email = request.Email,
+            GroupId = group.Id
+        };
+        _context.Users.Add(userObj);
+        if(!preExistingGroup)
+        {
+            group.Users.Add(userObj);
+        }
+        if(group.Users.Any(u => u.UserName.ToLower() == request.UserName.ToLower()))
+        {
+            return Ok(new { Message = "User already exists in the group.", User = userObj, Group = group });
+        }
+        _context.Groups.Update(group);
+        await _context.SaveChangesAsync();
+        return Ok(new { Message = "Successfully added user to group.", User = User, Group = group });
     }
 
     /// <summary>
